@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+{% load static %}
+
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow-lg border-0 rounded-4">
+                <div class="card-header bg-primary text-white rounded-top-4">
+                    <h4 class="mb-0">
+                        <i class="fas fa-user-circle me-2"></i>
+                        {% if profile.user.user_type == 'recruiter' %} Recruiter Profile
+                        {% else %} Job Seeker Profile {% endif %}
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    <div class="text-center mb-4">
+                        {% if profile.profile_picture %}
+                            <img src="{{ profile.profile_picture.url }}" alt="Profile Picture"
+                                 class="rounded-circle shadow" style="width: 120px; height: 120px; object-fit: cover;">
+                        {% else %}
+                            <img src="{% static 'img/default-avatar.png' %}" alt="Default Avatar"
+                                 class="rounded-circle shadow" style="width: 120px; height: 120px; object-fit: cover;">
+                        {% endif %}
+                        <h4 class="mt-3">{{ user.display_name|default:user.username }}</h4>
+                        <p class="text-muted mb-0">{{ profile.location|default:"Location not set" }}</p>
+                    </div>
+
+                    <hr>
+
+                    <div class="mb-3">
+                        <strong>User Type:</strong> {{ user.get_user_type_display }}
+                    </div>
+
+                    {% if user.user_type == 'job_seeker' %}
+                        {% if skills %}
+                              {% for skill in skills %}
+                                  <span class="badge bg-secondary me-1">{{ skill|title }}</span>
+                              {% endfor %}
+                          {% else %}
+                              <span class="text-muted">No skills added</span>
+                          {% endif %}
+
+                        <div class="mb-3">
+                            <strong>Resume:</strong>
+                            {% if profile.resume %}
+                                <a href="{{ profile.resume.url }}" target="_blank" class="ms-2">
+                                    <i class="fas fa-file-pdf text-success"></i> View Resume
+                                </a>
+                            {% else %}
+                                <span class="text-warning ms-2"><i class="fas fa-exclamation-triangle"></i> Not uploaded</span>
+                            {% endif %}
+                        </div>
+                    {% else %}
+                        {% if profile.company_name %}
+                        <div class="mb-3">
+                            <strong>Company:</strong> {{ profile.company_name }}
+                        </div>
+                        {% endif %}
+                        {% if profile.company_website %}
+                        <div class="mb-3">
+                            <strong>Website:</strong>
+                            <a href="{{ profile.company_website }}" target="_blank">{{ profile.company_website }}</a>
+                        </div>
+                        {% endif %}
+                        {% if profile.company_description %}
+                        <div class="mb-3">
+                            <strong>About Company:</strong>
+                            <p class="mb-0">{{ profile.company_description }}</p>
+                        </div>
+                        {% endif %}
+                    {% endif %}
+
+                    <div class="mb-3">
+                        <strong>Member Since:</strong> {{ profile.created_at|date:"M d, Y" }}
+                    </div>
+
+                    <div class="d-grid gap-2 mt-4">
+                        <a href="{% url 'update_profile' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-user-edit me-2"></i>Update Profile
+                        </a>
+                        <a href="{% url 'password_change' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-lock me-2"></i>Change Password
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

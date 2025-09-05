@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container my-4">
+
+    {% if user_type == 'job_seeker' %}
+        <h4 class="mb-4">Jobs Matching Your Skills</h4>
+
+        {% for job in jobs %}
+            <div class="card mb-3 p-3 shadow-sm">
+                <div class="d-flex justify-content-between">
+                    <h5>{{ job.title }}</h5>
+                    <span class="badge bg-info">{{ job.match_percentage }}% Match</span>
+                </div>
+                <p class="mb-1"><strong>Company:</strong> {{ job.recruiter.recruiter_profile.company_name }}</p>
+                <p class="mb-1"><strong>Location:</strong> {{ job.location }}</p>
+                <p class="mb-1">
+                    <strong>Skills:</strong>
+                    {% for skill in job.skill_list %}
+                        <span class="badge bg-secondary">{{ skill }}</span>
+                    {% endfor %}
+                </p>
+                <a href="{% url 'job_detail' job.id %}" class="btn btn-primary btn-sm mt-2">View Details</a>
+            </div>
+        {% empty %}
+            <p>No matching jobs found.</p>
+        {% endfor %}
+
+        <div class="mt-3">
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center">
+                    {% if jobs.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ jobs.previous_page_number }}">Previous</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link">Previous</span></li>
+                    {% endif %}
+                    {% for num in jobs.paginator.page_range %}
+                        {% if jobs.number == num %}
+                            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                        {% else %}
+                            <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+                        {% endif %}
+                    {% endfor %}
+                    {% if jobs.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ jobs.next_page_number }}">Next</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link">Next</span></li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+
+    {% elif user_type == 'recruiter' %}
+        <h4 class="mb-4">Your Jobs and Applicants</h4>
+
+        {% for job in jobs %}
+            <div class="card mb-3 p-3 shadow-sm">
+                <h5>{{ job.title }}</h5>
+                <p class="mb-1"><strong>Skills Required:</strong>
+                    {% for skill in job.skill_list %}
+                        <span class="badge bg-secondary">{{ skill }}</span>
+                    {% endfor %}
+                </p>
+
+                <h6 class="mt-3">Applicants:</h6>
+                {% for app in job.applications_with_match %}
+                    <div class="border p-2 mb-2 rounded">
+                        <div class="d-flex align-items-center">
+                            {% if app.seeker.seeker_profile.profile_picture %}
+                                <img src="{{ app.seeker.seeker_profile.profile_picture.url }}" alt="{{ app.seeker.username }}" class="rounded-circle me-2" width="40" height="40">
+                            {% else %}
+                                <img src="/static/images/placeholder.png" alt="Profile" class="rounded-circle me-2" width="40" height="40">
+                            {% endif %}
+                            <div>
+                                <strong>{{ app.seeker.seeker_profile.full_name }}</strong> - <span class="badge bg-info">{{ app.match_percentage }}% Match</span>
+                                <div>
+                                    {% for s in app.match_skills %}
+                                        <span class="badge bg-success">{{ s }}</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% empty %}
+                    <p>No applicants yet.</p>
+                {% endfor %}
+            </div>
+        {% endfor %}
+
+    {% endif %}
+
+</div>
+
+{% endblock %}

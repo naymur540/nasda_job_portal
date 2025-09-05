@@ -1,0 +1,200 @@
+{% extends 'base.html' %}
+{% block content %}
+
+    <div class="container py-4">
+        <!-- Welcome Section -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card bg-gradient-primary text-white">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <h2 class="fw-bold mb-2">Welcome back, John!</h2>
+                                <p class="mb-0">Ready to find your next opportunity? We have 12 new job matches for you.</p>
+                            </div>
+                            <div class="col-md-4 text-end">
+                                <a href="browse-jobs.html" class="btn btn-light btn-lg">
+                                    <i class="fas fa-search me-2"></i>Browse Jobs
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="row g-4 mb-4">
+            <div class="col-lg-3 col-md-6">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <i class="fas fa-paper-plane fa-2x text-primary mb-3"></i>
+                        <h3 class="fw-bold">{{ application_count }}</h3>
+                        <p class="text-muted mb-0">Applications Sent</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <i class="fas fa-eye fa-2x text-success mb-3"></i>
+                        <h3 class="fw-bold">{{ pending_count }}</h3>
+                        <p class="text-muted mb-0">Pending Applications</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <i class="fas fa-heart fa-2x text-danger mb-3"></i>
+                        <h3 class="fw-bold">{{ offers_count }}</h3>
+                        <p class="text-muted mb-0">Offers</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <i class="fas fa-calendar-check fa-2x text-warning mb-3"></i>
+                        <h3 class="fw-bold">{{ interviews_count }}</h3>
+                        <p class="text-muted mb-0">Interviews</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <!-- Recommended Jobs -->
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header bg-white">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="fw-bold mb-0">Applied Jobs</h5>
+                        </div>
+                    </div>
+                   <div class="card-body p-0">
+                      {% for app in applied_jobs %}
+                      <div class="p-4 border-bottom">
+                          <div class="d-flex align-items-start">
+                              {% if app.job.recruiter.recruiter_profile.profile_picture %}
+                              <img src="{{ app.job.recruiter.recruiter_profile.profile_picture.url }}" 
+                                  alt="{{ app.job.recruiter.display_name }}" class="rounded me-3" width="60" height="60">
+                              {% else %}
+                              <img src="/static/images/placeholder.png" alt="Company" class="rounded me-3" width="60" height="60">
+                              {% endif %}
+                              <div class="flex-grow-1">
+                                  <div class="d-flex justify-content-between align-items-start mb-2">
+                                      <div>
+                                          <h6 class="fw-bold mb-1">{{ app.job.title }}</h6>
+                                          <p class="text-muted mb-1">{{ app.job.recruiter.display_name }} • {{ app.job.location }}</p>
+                                      </div>
+                                      <span class="badge bg-success">{{ app.status|title }}</span>
+                                  </div>
+                                  <p class="mb-2">
+                                      {% if app.job.skill_list %}
+                                          {% for skill in app.job.skill_list %}
+                                              <span class="badge bg-secondary me-1">{{ skill|title }}</span>
+                                          {% endfor %}
+                                      {% else %}
+                                          <span class="text-muted">No skills listed</span>
+                                      {% endif %}
+                                  </p>
+                                  <div class="d-flex justify-content-between align-items-center">
+                                      <div>
+                                          <span class="badge bg-primary me-2">{{ app.job.get_job_type_display }}</span>
+                                          {% if app.job.salary_min and app.job.salary_max %}
+                                              <span class="fw-bold text-success">${{ app.job.salary_min }} - ${{ app.job.salary_max }}</span>
+                                          {% endif %}
+                                      </div>
+                                      <div>
+                                          <a href="{% url 'withdraw_application' app.id %}" class="btn btn-sm btn-outline-danger me-2">
+                                              <i class="fas fa-times"></i> Withdraw
+                                          </a>
+                                          <a href="{% url 'job_detail' app.job.id %}" class="btn btn-sm btn-primary">View Job</a>
+                                      </div>
+                                  </div>
+                                  <small class="text-muted">Applied {{ app.applied_at|timesince }} ago</small>
+                              </div>
+                          </div>
+                      </div>
+                      {% empty %}
+                      <div class="p-4 text-center text-muted">You haven't applied to any jobs yet.</div>
+                      {% endfor %}
+                  </div>
+
+
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="col-lg-4">
+
+
+                <div class="card mb-4">
+                  <div class="card-header bg-white">
+                      <h6 class="fw-bold mb-0">Recent Applications</h6>
+                  </div>
+                  <div class="card-body p-0">
+                      {% for app in applied_jobs %}
+                      <div class="p-3 {% if not forloop.last %}border-bottom{% endif %}">
+                          <div class="d-flex justify-content-between align-items-center">
+                              <div>
+                                  <h6 class="mb-1">{{ app.job.title }}</h6>
+                                  <small class="text-muted">{{ app.job.recruiter.display_name }}</small>
+                              </div>
+                              {% if app.status == 'pending' %}
+                                  <span class="badge bg-warning">{{ app.status|title }}</span>
+                              {% elif app.status == 'reviewed' %}
+                                  <span class="badge bg-info">{{ app.status|title }}</span>
+                              {% elif app.status == 'interviewed' %}
+                                  <span class="badge bg-success">{{ app.status|title }}</span>
+                              {% elif app.status == 'offered' %}
+                                  <span class="badge bg-primary">{{ app.status|title }}</span>
+                              {% elif app.status == 'rejected' %}
+                                  <span class="badge bg-danger">{{ app.status|title }}</span>
+                              {% else %}
+                                  <span class="badge bg-secondary">{{ app.status|title }}</span>
+                              {% endif %}
+                          </div>
+                          <p class="mb-2">{{ app.job.description|truncatechars:100 }}</p>
+                          <div class="d-flex justify-content-between align-items-center">
+                              <div>
+                                  <span class="badge bg-primary me-2">{{ app.job.get_job_type_display }}</span>
+                                  {% if app.job.salary_min and app.job.salary_max %}
+                                      <span class="fw-bold text-success">${{ app.job.salary_min }} - ${{ app.job.salary_max }}</span>
+                                  {% endif %}
+                              </div>
+                              <div>
+                                  <small class="text-muted">Applied {{ app.applied_at|timesince }} ago</small>
+                              </div>
+                          </div>
+                      </div>
+                      {% empty %}
+                      <div class="p-3 text-center text-muted">You haven't applied to any jobs yet.</div>
+                      {% endfor %}
+                  </div>
+              </div>
+
+
+                <!-- Quick Actions -->
+                <div class="card">
+                    <div class="card-header bg-white">
+                        <h6 class="fw-bold mb-0">Quick Actions</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <a href="{% url 'update_profile' %}" class="btn btn-outline-primary">
+                                <i class="fas fa-user-edit me-2"></i>Update Profile
+                            </a>
+                            <a href="{% url 'job_list' %}" class="btn btn-outline-success">
+                                <i class="fas fa-search me-2"></i>Browse Jobs
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock content %}
+
