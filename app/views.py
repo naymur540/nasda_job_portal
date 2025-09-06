@@ -7,7 +7,6 @@ from django.core.paginator import Paginator
 from django.contrib import messages
 from django.db.models import Q
 
-
 def home(request):
     jobs= Job.objects.filter(application_deadline__gte=timezone.now()).order_by('-created_at')[:5]
     for job in jobs:
@@ -186,7 +185,6 @@ def dashboard(request):
             }
             return render(request, 'recruiter_dashboard.html', context)
         
-
 
 
 def job_list(request):
