@@ -5,6 +5,7 @@ from .models import *
 from .froms import *
 from django.core.paginator import Paginator
 from django.contrib import messages
+from django.db.models import Q
 
 
 def home(request):
@@ -185,9 +186,8 @@ def dashboard(request):
             }
             return render(request, 'recruiter_dashboard.html', context)
         
-from django.db.models import Q
-from django.core.paginator import Paginator
-from django.utils import timezone
+
+
 
 def job_list(request):
     jobs_count = Job.objects.filter(application_deadline__gte=timezone.now()).count()
@@ -208,22 +208,24 @@ def job_list(request):
     if job_type_query:
         jobs = jobs.filter(job_type__iexact=job_type_query)
 
-    if request.user.user_type == 'job_seeker':
-        seeker_skills = getattr(request.user.seeker_profile, 'skills', '') or ''
-        seeker_skill_set = set([s.strip().lower() for s in seeker_skills.split(',')])
+    if request.user.is_authenticated:
+        if request.user.user_type == 'job_seeker':
+            seeker_skills = getattr(request.user.seeker_profile, 'skills', '') or ''
+            seeker_skill_set = set([s.strip().lower() for s in seeker_skills.split(',') if s.strip()])
+            for job in jobs:
+                job_skill_list = [s.strip() for s in (job.skills or '').split(',') if s.strip()]
+                job.skill_list = job_skill_list
+                job_skill_set = set([s.lower() for s in job_skill_list])
+                job.match_percentage = int((len(seeker_skill_set & job_skill_set) / len(job_skill_set)) * 100) if job_skill_set else 0
+        elif request.user.user_type == 'recruiter':
+            jobs = jobs.filter(recruiter=request.user)
+            for job in jobs:
+                job.skill_list = [s.strip() for s in (job.skills or '').split(',') if s.strip()]
+    else:
+
         for job in jobs:
-            job_skill_list = [s.strip() for s in (job.skills or '').split(',')]
-            job.skill_list = job_skill_list
-            job_skill_set = set([s.lower() for s in job_skill_list])
-            if job_skill_set:
-                match_count = len(seeker_skill_set & job_skill_set)
-                job.match_percentage = int((match_count / len(job_skill_set)) * 100)
-            else:
-                job.match_percentage = 0
-    elif request.user.user_type == 'recruiter':
-        jobs = jobs.filter(recruiter=request.user)
-        for job in jobs:
-            job.skill_list = [s.strip() for s in (job.skills or '').split(',')]
+            job.skill_list = [s.strip() for s in (job.skills or '').split(',') if s.strip()]
+            job.match_percentage = None  # No match shown
 
     paginator = Paginator(jobs, 10)
     page_number = request.GET.get('page')
@@ -236,6 +238,8 @@ def job_list(request):
         'location_query': location_query,
         'job_type_query': job_type_query
     })
+
+
 
 def add_job(request):
     if request.method == 'POST':
